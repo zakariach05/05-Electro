@@ -6,8 +6,9 @@ import { Mail, Lock, LogIn, ArrowRight } from 'lucide-react';
 import SEO from '../components/atoms/SEO';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState(localStorage.getItem('remember_email') || '');
+    const [password, setPassword] = useState(localStorage.getItem('remember_password') || '');
+    const [rememberMe, setRememberMe] = useState(!!localStorage.getItem('remember_email'));
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
@@ -19,6 +20,16 @@ const Login = () => {
         setError('');
         try {
             const data = await login(email, password);
+
+            // Handle Remember Me
+            if (rememberMe) {
+                localStorage.setItem('remember_email', email);
+                localStorage.setItem('remember_password', password);
+            } else {
+                localStorage.removeItem('remember_email');
+                localStorage.removeItem('remember_password');
+            }
+
             if (data.user?.role === 'admin') {
                 navigate('/admin/dashboard');
             } else {
@@ -84,6 +95,21 @@ const Login = () => {
                                     />
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        className="peer sr-only"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                    />
+                                    <div className="w-10 h-5 bg-gray-200 rounded-full peer peer-checked:bg-primary transition-all after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5"></div>
+                                </div>
+                                <span className="text-xs font-bold text-gray-500 group-hover:text-gray-900 transition-colors uppercase tracking-widest">Se souvenir de moi</span>
+                            </label>
                         </div>
 
                         <div>

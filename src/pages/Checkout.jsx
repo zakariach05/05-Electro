@@ -11,7 +11,8 @@ import {
     ChevronRight,
     MapPin,
     AlertCircle,
-    Check
+    Check,
+    Package
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -20,7 +21,7 @@ import getImageUrl from '../services/image';
 import toast from 'react-hot-toast';
 
 const Checkout = () => {
-    const { cartItems, cartTotal, cartCount, ACOMPTE_AMOUNT, SHIPPING_FEE, clearCart } = useCart();
+    const { cartItems, cartTotal, cartCount, ACOMPTE_AMOUNT, SHIPPING_FEE, clearCart, removeItemsByIds } = useCart();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -34,6 +35,7 @@ const Checkout = () => {
 
     const [paymentMethod, setPaymentMethod] = useState('cod'); // cod, card, wallet
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [orderSuccess, setOrderSuccess] = useState(null);
 
     // Group items by seller
     const sellerGroups = useMemo(() => {
@@ -85,32 +87,153 @@ const Checkout = () => {
                 }))
             };
 
-            await axios.post(`${API_URL}/orders`, payload);
+            const response = await axios.post(`${API_URL}/orders`, payload);
+            const orderData = response.data;
+
+            // Capture these before clearing the cart
+            const finalCount = cartCount;
 
             toast.success(
                 <div className="py-2">
                     <p className="font-bold text-base mb-1">💳 Paiement & Commande Confirmés</p>
                     <p className="text-xs opacity-90">📦 Livraison estimée : 2 à 4 jours ouvrables.</p>
-                    <p className="text-[10px] mt-2 italic text-blue-200 underline">Votre commande sera livrée par nos vendeurs partenaires.</p>
                 </div>,
-                { duration: 8000, position: 'top-center', style: { minWidth: '350px', background: '#1e3a8a' } }
+                { duration: 5000, position: 'top-center' }
             );
 
+            // Store both order info and the count for the success screen
+            setOrderSuccess({
+                id: orderData.order_id,
+                itemCount: finalCount
+            });
+
             clearCart();
-            setTimeout(() => navigate('/'), 3500);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
 
         } catch (error) {
             console.error("Erreur commande:", error);
-            toast.error("Erreur lors de la validation. Veuillez réessayer.");
+
+            if (error.response?.status === 422) {
+                const errors = error.response.data.errors;
+
+                // 1. Check for specific product ID errors (indices)
+                const invalidIndices = [];
+                Object.keys(errors || {}).forEach(key => {
+                    if (key.startsWith('items.') && key.endsWith('.id')) {
+                        const index = parseInt(key.split('.')[1]);
+                        if (!isNaN(index)) invalidIndices.push(index);
+                    }
+                });
+
+                // 2. Determine if it's a general list error or specific items
+                const isObsoleteItems = errors && (errors['items'] || invalidIndices.length > 0);
+
+                if (isObsoleteItems) {
+                    const invalidIds = invalidIndices.map(idx => cartItems[idx]?.id).filter(id => id !== undefined);
+
+                    toast.error(
+                        <div className="flex flex-col gap-3">
+                            <div>
+                                <p className="font-black text-sm mb-1 uppercase tracking-tight flex items-center gap-2">
+                                    <AlertCircle size={16} className="text-red-500" />
+                                    Panier Obsolète
+                                </p>
+                                <p className="text-[11px] leading-relaxed opacity-80">
+                                    {invalidIds.length > 0
+                                        ? `${invalidIds.length} article(s) n'existent plus dans notre base (identifiants expirés).`
+                                        : "Certains articles ne sont plus valides suite à une mise à jour système."}
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => {
+                                        if (invalidIds.length > 0) {
+                                            removeItemsByIds(invalidIds);
+                                            toast.success("Articles expirés retirés ! Vous pouvez re-valider.");
+                                        } else {
+                                            clearCart();
+                                            navigate('/');
+                                        }
+                                        toast.dismiss();
+                                    }}
+                                    className="w-full bg-red-600 text-white py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-red-600/20 active:scale-95 transition-all"
+                                >
+                                    {invalidIds.length > 0 ? "Corriger mon panier (Garder le reste)" : "Vider mon panier"}
+                                </button>
+                                <button
+                                    onClick={() => toast.dismiss()}
+                                    className="w-full bg-gray-100 text-gray-500 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest"
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                        </div>,
+                        { duration: 10000, position: 'top-center' }
+                    );
+                } else {
+                    const errorMessages = errors ? Object.values(errors).flat().join('\n') : "Veuillez vérifier les informations saisies.";
+                    toast.error(errorMessages);
+                }
+            } else {
+                toast.error("Erreur durant la validation. Veuillez vérifier vos informations.");
+            }
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    if (orderSuccess) {
+        return (
+            <MainLayout>
+                <div className="min-h-[80vh] flex flex-col items-center justify-center px-4 bg-gray-50 dark:bg-gray-950 font-sans">
+                    <div className="w-24 h-24 bg-green-50 dark:bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                        <Check size={48} strokeWidth={3} />
+                    </div>
+                    <div className="text-center space-y-4 max-w-lg">
+                        <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full font-black text-[10px] uppercase tracking-widest mb-2 border border-primary/20">
+                            <Package size={14} />
+                            {orderSuccess.itemCount} {orderSuccess.itemCount > 1 ? 'Produits' : 'Produit'} Commandé(s)
+                        </div>
+                        <h2 className="text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tighter italic">Commande <span className="text-primary">Confirmée !</span></h2>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">
+                            Merci pour votre confiance. Votre commande <span className="font-black text-gray-900 dark:text-white">#ECO-{(orderSuccess?.id || '0').toString().padStart(6, '0')}</span> est en cours de traitement.
+                        </p>
+
+                        <div className="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                            <Link
+                                to={`/track/${orderSuccess.id}`}
+                                className="inline-flex items-center gap-3 px-10 py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all shadow-xl shadow-primary/30 hover:scale-105 active:scale-95"
+                            >
+                                <Truck size={20} />
+                                Suivre ma commande
+                                <ChevronRight size={18} />
+                            </Link>
+                            <Link
+                                to="/"
+                                className="inline-flex items-center gap-3 px-10 py-5 bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-2 border-gray-100 dark:border-white/5 rounded-2xl font-black uppercase tracking-widest text-xs transition-all hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95"
+                            >
+                                Retour à l'accueil
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className="mt-16 p-6 bg-blue-50 dark:bg-primary/5 border border-primary/10 rounded-3xl flex items-start gap-4 max-w-md">
+                        <div className="w-10 h-10 bg-white dark:bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0 animate-pulse">
+                            <Clock size={20} className="text-primary" />
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-medium">
+                            <strong>Note :</strong> Un e-mail de confirmation vient d'être envoyé à <span className="text-primary font-bold">{orderSuccess.customer_email || formData.email}</span>. Pensez à vérifier vos spams !
+                        </p>
+                    </div>
+                </div>
+            </MainLayout>
+        );
+    }
+
     if (cartItems.length === 0) {
         return (
             <MainLayout>
-                <div className="min-h-[70vh] flex flex-col items-center justify-center bg-white px-4">
+                <div className="min-h-[70vh] flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
                     <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6">
                         <Truck size={40} className="text-gray-300" />
                     </div>

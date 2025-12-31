@@ -48,6 +48,7 @@ const Shop = () => {
                     page: currentPage,
                     per_page: PAGE_SIZE
                 };
+                if (category && category !== 'all') params.category = category;
                 if (searchQuery) params.search = searchQuery;
                 if (filters.brands && filters.brands.length > 0) params.brands = filters.brands.join(',');
                 if (filters.states && filters.states.length > 0) params.states = filters.states.map(s => s.toLowerCase()).join(',');

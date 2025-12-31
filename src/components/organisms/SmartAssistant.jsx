@@ -144,23 +144,23 @@ const SmartAssistant = () => {
                     ) : (
                         <div className="space-y-6">
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Étape {step + 1}/{questions.length}</span>
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Étape {(typeof step === 'number' ? step + 1 : 0)}/{questions.length}</span>
                                 <div className="flex gap-1">
                                     {questions.map((_, i) => (
-                                        <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i <= step ? 'w-6 bg-secondary' : 'w-2 bg-gray-200'}`}></div>
+                                        <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${(typeof step === 'number' && i <= step) ? 'w-6 bg-secondary' : 'w-2 bg-gray-200'}`}></div>
                                     ))}
                                 </div>
                             </div>
 
                             <h4 className="text-xl font-bold text-gray-900 leading-tight">
-                                {questions[step].text}
+                                {questions[step]?.text || "Chargement..."}
                             </h4>
 
                             <div className="grid grid-cols-1 gap-3">
-                                {questions[step].options.map((option) => (
+                                {questions[step]?.options?.map((option) => (
                                     <button
                                         key={option.value}
-                                        onClick={() => handleOptionSelect(questions[step].id, option.value)}
+                                        onClick={() => handleOptionSelect(questions[step]?.id, option.value)}
                                         className="w-full text-left p-4 rounded-xl border border-gray-200 hover:border-secondary hover:bg-secondary/5 transition-all flex items-center justify-between group"
                                     >
                                         <span className="font-medium text-gray-700 group-hover:text-gray-900 flex items-center gap-3">

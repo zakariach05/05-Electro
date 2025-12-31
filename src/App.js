@@ -33,6 +33,12 @@ const Contact = lazy(() => import('./pages/Contact'));
 const Login = lazy(() => import('./pages/Login'));
 const Register = lazy(() => import('./pages/Register'));
 const OrderTracking = lazy(() => import('./pages/OrderTracking'));
+const Support = lazy(() => import('./pages/Support'));
+const Promotions = lazy(() => import('./pages/Promotions'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Returns = lazy(() => import('./pages/Returns'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Account = lazy(() => import('./pages/Account'));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -96,91 +102,124 @@ function App() {
           <WishlistProvider>
             <CartProvider>
               <CompareProvider>
-                {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-                <Router>
-                  <CartDrawer />
-                  <BackToTop />
-                  <SmartAssistant />
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/product/:id" element={<ProductDetail />} />
-                      <Route path="/shop/:category" element={<Shop />} />
-                      <Route path="/shop/:category/:subcategory" element={<Shop />} />
-                      <Route path="/cart" element={<Home />} />
-                      <Route
-                        path="/checkout"
-                        element={
-                          <ProtectedRoute>
-                            <Checkout />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/dashboard"
-                        element={
-                          <ProtectedRoute adminOnly>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/products"
-                        element={
-                          <ProtectedRoute adminOnly>
-                            <AdminProducts />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/products/new"
-                        element={
-                          <ProtectedRoute adminOnly>
-                            <AdminProductForm />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/products/edit/:id"
-                        element={
-                          <ProtectedRoute adminOnly>
-                            <AdminProductForm />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/orders"
-                        element={
-                          <ProtectedRoute adminOnly>
-                            <AdminOrders />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/categories"
-                        element={
-                          <ProtectedRoute adminOnly>
-                            <AdminCategories />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route
-                        path="/admin/users"
-                        element={
-                          <ProtectedRoute adminOnly>
-                            <AdminUsers />
-                          </ProtectedRoute>
-                        }
-                      />
-                      <Route path="/comparison" element={<Comparison />} />
-                      <Route path="/wishlist" element={<Wishlist />} />
-                      <Route path="/contact" element={<Contact />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/register" element={<Register />} />
-                      <Route path="/track/:id" element={<OrderTracking />} />
-                    </Routes>
-                  </Suspense>
-                </Router>
+                <div id="app-root" translate="no" className="min-h-screen relative">
+                  {showSplash && (
+                    <div key="splash-container">
+                      <SplashScreen onComplete={handleSplashComplete} />
+                    </div>
+                  )}
+
+                  {!showSplash && (
+                    <div key="main-app" className="animate-fade-in">
+                      <Router>
+                        <CartDrawer />
+                        <BackToTop />
+                        <SmartAssistant />
+                        <Suspense fallback={<PageLoader />}>
+                          <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/shop" element={<Shop />} />
+                            <Route path="/product/:id" element={<ProductDetail />} />
+                            <Route path="/shop/:category" element={<Shop />} />
+                            <Route path="/shop/:category/:subcategory" element={<Shop />} />
+                            <Route path="/cart" element={<Home />} />
+                            <Route
+                              path="/checkout"
+                              element={
+                                <ProtectedRoute>
+                                  <Checkout />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/dashboard"
+                              element={
+                                <ProtectedRoute adminOnly>
+                                  <Dashboard />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/products"
+                              element={
+                                <ProtectedRoute adminOnly>
+                                  <AdminProducts />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/products/new"
+                              element={
+                                <ProtectedRoute adminOnly>
+                                  <AdminProductForm />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/products/edit/:id"
+                              element={
+                                <ProtectedRoute adminOnly>
+                                  <AdminProductForm />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/orders"
+                              element={
+                                <ProtectedRoute adminOnly>
+                                  <AdminOrders />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/categories"
+                              element={
+                                <ProtectedRoute adminOnly>
+                                  <AdminCategories />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/admin/users"
+                              element={
+                                <ProtectedRoute adminOnly>
+                                  <AdminUsers />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route path="/comparison" element={<Comparison />} />
+                            <Route path="/wishlist" element={<Wishlist />} />
+                            <Route path="/contact" element={<Contact />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/register" element={<Register />} />
+                            <Route path="/track/:id" element={<OrderTracking />} />
+                            <Route path="/promotions" element={<Promotions />} />
+                            <Route path="/faq" element={<FAQ />} />
+                            <Route path="/retours" element={<Returns />} />
+                            <Route path="/conditions" element={<Terms />} />
+                            <Route path="/order-tracking" element={<OrderTracking />} />
+                            <Route
+                              path="/support"
+                              element={
+                                <ProtectedRoute>
+                                  <Support />
+                                </ProtectedRoute>
+                              }
+                            />
+                            <Route
+                              path="/account"
+                              element={
+                                <ProtectedRoute>
+                                  <Account />
+                                </ProtectedRoute>
+                              }
+                            />
+                          </Routes>
+                        </Suspense>
+                      </Router>
+                    </div>
+                  )}
+                </div>
               </CompareProvider>
             </CartProvider>
           </WishlistProvider>

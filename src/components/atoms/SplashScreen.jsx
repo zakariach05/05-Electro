@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
 const SplashScreen = ({ onComplete }) => {
-    const [isVisible, setIsVisible] = useState(true);
     const [fadeOut, setFadeOut] = useState(false);
     const [zoomIn, setZoomIn] = useState(false);
 
@@ -16,9 +15,8 @@ const SplashScreen = ({ onComplete }) => {
             setFadeOut(true);
         }, 3000);
 
-        // Complete and hide after fade animation (3.5s total)
+        // Complete and hide (3.5s total)
         const hideTimer = setTimeout(() => {
-            setIsVisible(false);
             if (onComplete) onComplete();
         }, 3500);
 
@@ -28,8 +26,6 @@ const SplashScreen = ({ onComplete }) => {
             clearTimeout(hideTimer);
         };
     }, [onComplete]);
-
-    if (!isVisible) return null;
 
     return (
         <div

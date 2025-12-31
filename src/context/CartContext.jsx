@@ -44,6 +44,10 @@ export const CartProvider = ({ children }) => {
         setCartItems(prev => prev.filter(item => item.id !== productId));
     };
 
+    const removeItemsByIds = (ids) => {
+        setCartItems(prev => prev.filter(item => !ids.includes(item.id)));
+    };
+
     const updateQuantity = (productId, delta) => {
         setCartItems(prev => prev.map(item => {
             if (item.id === productId) {
@@ -80,6 +84,7 @@ export const CartProvider = ({ children }) => {
             wishlistItems,
             addToCart,
             removeFromCart,
+            removeItemsByIds,
             updateQuantity,
             clearCart,
             addToWishlist,
