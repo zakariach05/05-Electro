@@ -15,16 +15,35 @@ const BrandsMarquee = () => {
                     name: b.name,
                     logo: getImageUrl(b.logo || b.image)
                 }));
-                if (fetchedBrands.length > 0) {
-                    setBrands(fetchedBrands);
-                } else {
-                    setBrands(brandsData.map(b => ({
-                        ...b,
-                        logo: getImageUrl(b.logo)
-                    })));
-                }
+
+                console.log('Marques récupérées de l\'API:', fetchedBrands.length);
+
+                // Fusionner les marques de l'API avec celles du JSON local
+                // pour s'assurer que toutes les marques sont affichées
+                const localBrands = brandsData.map(b => ({
+                    ...b,
+                    logo: getImageUrl(b.logo)
+                }));
+
+                // Créer un Map pour éviter les doublons basé sur le nom
+                const brandsMap = new Map();
+
+                // Ajouter d'abord les marques locales
+                localBrands.forEach(brand => {
+                    brandsMap.set(brand.name.toLowerCase(), brand);
+                });
+
+                // Puis ajouter/remplacer avec les marques de l'API
+                fetchedBrands.forEach(brand => {
+                    brandsMap.set(brand.name.toLowerCase(), brand);
+                });
+
+                const allBrands = Array.from(brandsMap.values());
+                console.log('Total des marques à afficher:', allBrands.length);
+                setBrands(allBrands);
+
             } catch (error) {
-                console.error("Failed to fetch brands, utilizing fallback.", error);
+                console.error("Échec de récupération des marques, utilisation du fallback.", error);
                 setBrands(brandsData.map(b => ({
                     ...b,
                     logo: getImageUrl(b.logo)
@@ -83,7 +102,15 @@ const BrandsMarquee = () => {
                                 alt={brand.name}
                                 className="max-w-full max-h-full object-contain filter drop-shadow-sm transition-all"
                                 onError={(e) => {
+                                    // Afficher le nom de la marque en texte si l'image ne charge pas
                                     e.target.style.display = 'none';
+                                    const parent = e.target.parentElement;
+                                    if (!parent.querySelector('.brand-fallback')) {
+                                        const fallback = document.createElement('div');
+                                        fallback.className = 'brand-fallback text-2xl font-black text-gray-800 dark:text-white uppercase tracking-wider';
+                                        fallback.textContent = brand.name;
+                                        parent.appendChild(fallback);
+                                    }
                                 }}
                             />
                         </div>
